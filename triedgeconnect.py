@@ -5,10 +5,10 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 def traverse(root: int, g: Dict[int, List[int]]):
-    graph:  Dict[int, Set[int]] = dict()
+    graph:  Dict[int, List[int]] = dict()
     # Make a defensive copy of the original graph
     for u, connected in g.items():
-        graph[u] = set(connected)
+        graph[u] = connected.copy()
 
     # Initialize each component to be 1 vertex (itself)
     components: Dict[int, Set[int]] = dict()
@@ -85,15 +85,16 @@ def traverse(root: int, g: Dict[int, List[int]]):
         assert u != v
         logging.debug(f"ABSORB EDGE: {u} -- {v} (eject: {eject})")
 
-        graph[u].update(graph[v])
+        graph[u].extend(graph[v])
         for x in graph[v]:
             # Replace all mentions of v, with u!
-            graph[x].remove(v)
-            graph[x].add(u)
+            for _ in range(graph[x].count(v)):
+                graph[x].remove(v)
+                graph[x].append(u)
 
         # Remove self-loops
-        graph[u].remove(u)
-            # graph[u].remove(v)
+        graph[u] = [x for x in graph[u] if x != u]
+        # graph[u].remove(v)
         # print(f"trying to remove {v}")
         # graph[u].remove(v)
 
