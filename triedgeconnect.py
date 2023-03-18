@@ -1,23 +1,19 @@
 from typing import List, Set, FrozenSet, DefaultDict, Dict
 from collections import defaultdict
-from utils import Edge
+from utils import Component, Edge
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
 
-
-def traverse(root: int, g: Dict[int, List[int]]):
+def traverse(root: int, g: Dict[int, List[int]]) -> List[Component]:
     graph: Dict[int, List[int]] = dict()
     # Embodiments of all edges
     embodiments: Dict[Edge, Edge] = dict()
-    associations: Dict[Edge, Set[Edge]] = dict()
 
     # Make a defensive copy of the original graph
     for u, connected in g.items():
         graph[u] = connected.copy()
         for v in connected:
             embodiments[Edge(u, v)] = Edge(u, v)
-            associations[Edge(u, v)] = set([Edge(u, v)])
 
     # Initialize each component to be 1 vertex (itself)
     components: Dict[int, Set[int]] = dict()
@@ -56,20 +52,12 @@ def traverse(root: int, g: Dict[int, List[int]]):
         paths[u] = [u]
 
         for v in graph[u].copy():
-            old = v
-            print(f"Looking at {v} (from {u})")
             v = embodiments[Edge(u, v)].adj(u)
-            print(f"NOW looking at {v} (from {u})")
             if u == v:
-                print("oopsies")
                 continue
 
             if v not in graph[u]:
-                print(
-                    f"Trying to look at {Edge(u, old)} ---> {embodiments[Edge(u,old)]}"
-                )
-                print(embodiments)
-                continue
+                logging.error("The graph was constructed incorrectly.")
 
             edge = Edge(u, v)
 
@@ -131,7 +119,6 @@ def traverse(root: int, g: Dict[int, List[int]]):
 
         for x in graph[v]:
             embodiments[Edge(v, x)] = Edge(u, x)
-            print(f"{Edge(v, x)} --> {Edge(u, x)}")
 
             for uv, xy in embodiments.items():
                 if xy == Edge(v, x):
@@ -162,7 +149,6 @@ def traverse(root: int, g: Dict[int, List[int]]):
             graph[v].clear()
 
         # print(embodiments)
-        print(components)
 
     def absorb_path(p: List[int]):
         """Absorb a path of n vertices into p[0]. Take all edges incident to
@@ -181,6 +167,9 @@ def traverse(root: int, g: Dict[int, List[int]]):
             absorb(origin, v, eject=False)
 
     dfs(root, -1)
-    for edge in tree:
-        print(edge)
-    return components
+
+    res: List[Component] = []
+    for c in components.values():
+        res.append(Component(c))
+
+    return res

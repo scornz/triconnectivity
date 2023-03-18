@@ -35,7 +35,18 @@ class Edge:
         return f"{self.u} -- {self.v}"
 
 
-def verify(graph: Dict[int, List[int]]):
+class Component(frozenset):
+    def __repr__(self):
+        return "{" + ",".join(str(x) for x in self) + "}"
+
+    def __str__(self):
+        return self.__repr__()
+
+
+def verify_graph(graph: Dict[int, List[int]]):
+    """Takes in an undirected graph, and makes sure every edge has its opposite
+    in the graph."""
+
     for u, adj in graph.items():
         for v in adj:
             if u not in graph[v]:

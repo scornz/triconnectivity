@@ -1,5 +1,40 @@
 from triedgeconnect import traverse
-from utils import verify
+from utils import verify_graph
+
+from typing import Dict, List
+
+import logging
+
+
+def test_consistency(graph: Dict[int, List[int]]):
+    """Test the consistency of the algorithm on the given input. For every possible
+    root, compare the returned components against one another. NOTE: This does
+    not necessarily test for correctness, but consistent responses no matter the
+    initialization of the function."""
+
+    # Verify that the graph is undirected
+    verify_graph(graph)
+
+    vertices = [k for k in graph]
+    components = set(traverse(vertices[0], graph))
+
+    for i in range(1, len(vertices)):
+        v = vertices[i]
+        test_components = traverse(v, graph)
+        count = 0
+        for c in test_components:
+            if frozenset(c) not in components:
+                raise Exception()
+
+            count += 1
+
+        if count != len(components):
+            raise Exception()
+
+    logging.info(
+        f"Graph was consistent for all root inputs. The components are: {components}"
+    )
+
 
 # Not tri-connected, at all, three different components
 simple = {1: [2, 3], 2: [1, 3], 3: [1, 2]}
@@ -41,5 +76,9 @@ paper_example = {
     17: [7, 11, 7],
 }
 
-# print(verify(paper_example))
-print(traverse(3, paper_example))
+logging.basicConfig(level=logging.INFO)
+test_consistency(simple)
+test_consistency(simple2)
+test_consistency(simple3)
+test_consistency(graph)
+test_consistency(paper_example)
