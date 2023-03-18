@@ -1,14 +1,21 @@
 from typing import List, Set, FrozenSet, DefaultDict, Dict
 from collections import defaultdict
+from utils import Edge
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 def traverse(root: int, g: Dict[int, List[int]]):
     graph:  Dict[int, List[int]] = dict()
+    # Embodiments of all edges
+    embodiments: Dict[Edge, Edge] = dict()
+
     # Make a defensive copy of the original graph
     for u, connected in g.items():
         graph[u] = connected.copy()
+        for v in connected:
+            embodiments[Edge(u,v)] = Edge(u,v)
 
     # Initialize each component to be 1 vertex (itself)
     components: Dict[int, Set[int]] = dict()
@@ -21,10 +28,20 @@ def traverse(root: int, g: Dict[int, List[int]]):
     parents: Dict[int, int] = dict() # Dict[vertex, parent]
     low: Dict[int, int] = dict()
     paths: Dict[int, List[int]] = dict()
-    tree: Set[FrozenSet[int]] = set()
+    tree: Set[Edge] = set()
+
+    def degree(u: int) -> int:
+        connected = graph[u]
+        actual = set()
+        for v in connected:
+            actual.add(embodiments[Edge(u,v)].adj(u))
+        
+        if u in actual:
+            actual.remove(u)
+        return len(actual)
 
     def dfs(u: int, p: int = -1):
-        logging.debug(f"PRE-VISITING: {u}")
+        logging.debug(f"VISITING: {u}")
         nonlocal time
         # Assign pre-order value
         pre[u] = time
@@ -37,17 +54,28 @@ def traverse(root: int, g: Dict[int, List[int]]):
         paths[u] = [u]
 
         for v in graph[u].copy():
-            if v not in graph[u]:
+            old = v
+            print(f"Looking at {v} (from {u})")
+            v = embodiments[Edge(u,v)].adj(u)
+            print(f"NOW looking at {v} (from {u})")
+            if u == v:
+                print("oopsies")
                 continue
 
-            edge = frozenset([u,v])
+            if v not in graph[u]:
+                print(f"Trying to look at {Edge(u, old)} ---> {embodiments[Edge(u,old)]}")
+                continue
+
+
+            edge = Edge(u, v)
 
             if v not in pre:
                 tree.add(edge)
                 # v is unvisited
                 dfs(v, u)
-                logging.debug(f"POST-VISITING: {u}")
+                logging.debug(f"POST-VISITING: {v} (from {u})")
                 # If the degree of v is two
+                # print(degree())
                 if len(graph[v]) == 2:
                     # Connect u to all of v's edges, and EJECT v
                     absorb(u, v, eject=True)
@@ -61,7 +89,7 @@ def traverse(root: int, g: Dict[int, List[int]]):
                     low[u] = low[v]
                     absorb_path(paths[u])
                     paths[u] = [u] + paths[v]
-            elif edge not in tree:
+            else:
                 if pre[u] > pre[v]:
                     # Outgoing back-edge of u
                     logging.debug(f"OUTGOING BACK-EDGE: {u} -- {v}")
@@ -72,10 +100,13 @@ def traverse(root: int, g: Dict[int, List[int]]):
                         paths[u] = [u]
                 elif pre[u] < pre[v]:
                     # Incoming back-edge of u
-                    logging.debug(f"INCOMING BACK-EDGE: {u} -- {v}")
-                    index = paths[u].index(v)
-                    absorb_path(paths[u][:index+1])
-                    paths[u] = [u] + paths[u][index+1:]
+                    logging.debug(f"INCOMING BACK-EDGE: {u} -- {v} ({paths[u]})")
+                    if v in paths[u]:
+                        index = paths[u].index(v)
+                        absorb_path(paths[u][:index+1])
+                        paths[u] = [u] + paths[u][index+1:]
+                    else:
+                        logging.error(f"INCOMING BACK-EDGE PARTIAL ABSORB: Could not find {v} in paths[u]")
                 else:
                     raise Exception("pre[u] == pre[v], bad.")
     
@@ -84,11 +115,18 @@ def traverse(root: int, g: Dict[int, List[int]]):
         """Absorb u into v."""
         assert u != v
         logging.debug(f"ABSORB EDGE: {u} -- {v} (eject: {eject})")
+        logging.debug(f"ABSORB EDGE ADD: {graph[u]} + {graph[v]} (eject: {eject})")
 
         graph[u].extend(graph[v])
+
+        for edge in embodiments:
+            if v in edge:
+                embodiments[edge] = Edge(edge.adj(v), u)
+
         for x in graph[v]:
             # Replace all mentions of v, with u!
             for _ in range(graph[x].count(v)):
+                # embodiments[Edge(x,v)] = 
                 graph[x].remove(v)
                 graph[x].append(u)
 
@@ -99,7 +137,7 @@ def traverse(root: int, g: Dict[int, List[int]]):
         # graph[u].remove(v)
 
         if not eject:
-            graph.pop(v)
+            # print(graph.pop(v))
             components[u].update(components[v])
             # Get rid of this item, since it has been absorbed by u
             components.pop(v)
@@ -110,7 +148,7 @@ def traverse(root: int, g: Dict[int, List[int]]):
             # likewise, v should not be connected to anything either
             graph[v].clear()
 
-        print(graph)
+        print(components)
 
     def absorb_path(p: List[int]):
         """Absorb a path of n vertices into p[0]. Take all edges incident to
@@ -129,4 +167,6 @@ def traverse(root: int, g: Dict[int, List[int]]):
             absorb(origin, v, eject=False)
 
     dfs(root, -1)
+    for edge in tree:
+        print(edge)
     return components
