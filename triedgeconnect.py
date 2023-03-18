@@ -7,15 +7,17 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 def traverse(root: int, g: Dict[int, List[int]]):
-    graph:  Dict[int, List[int]] = dict()
+    graph: Dict[int, List[int]] = dict()
     # Embodiments of all edges
     embodiments: Dict[Edge, Edge] = dict()
+    associations: Dict[Edge, Set[Edge]] = dict()
 
     # Make a defensive copy of the original graph
     for u, connected in g.items():
         graph[u] = connected.copy()
         for v in connected:
-            embodiments[Edge(u,v)] = Edge(u,v)
+            embodiments[Edge(u, v)] = Edge(u, v)
+            associations[Edge(u, v)] = set([Edge(u, v)])
 
     # Initialize each component to be 1 vertex (itself)
     components: Dict[int, Set[int]] = dict()
@@ -24,8 +26,8 @@ def traverse(root: int, g: Dict[int, List[int]]):
 
     time = 1
     # Preordering of graph (order encountered in dfs)
-    pre: DefaultDict[int, int] = defaultdict(int) # Dict[vertex, preorder num]
-    parents: Dict[int, int] = dict() # Dict[vertex, parent]
+    pre: DefaultDict[int, int] = defaultdict(int)  # Dict[vertex, preorder num]
+    parents: Dict[int, int] = dict()  # Dict[vertex, parent]
     low: Dict[int, int] = dict()
     paths: Dict[int, List[int]] = dict()
     tree: Set[Edge] = set()
@@ -34,8 +36,8 @@ def traverse(root: int, g: Dict[int, List[int]]):
         connected = graph[u]
         actual = set()
         for v in connected:
-            actual.add(embodiments[Edge(u,v)].adj(u))
-        
+            actual.add(embodiments[Edge(u, v)].adj(u))
+
         if u in actual:
             actual.remove(u)
         return len(actual)
@@ -56,16 +58,18 @@ def traverse(root: int, g: Dict[int, List[int]]):
         for v in graph[u].copy():
             old = v
             print(f"Looking at {v} (from {u})")
-            v = embodiments[Edge(u,v)].adj(u)
+            v = embodiments[Edge(u, v)].adj(u)
             print(f"NOW looking at {v} (from {u})")
             if u == v:
                 print("oopsies")
                 continue
 
             if v not in graph[u]:
-                print(f"Trying to look at {Edge(u, old)} ---> {embodiments[Edge(u,old)]}")
+                print(
+                    f"Trying to look at {Edge(u, old)} ---> {embodiments[Edge(u,old)]}"
+                )
+                print(embodiments)
                 continue
-
 
             edge = Edge(u, v)
 
@@ -80,7 +84,7 @@ def traverse(root: int, g: Dict[int, List[int]]):
                     # Connect u to all of v's edges, and EJECT v
                     absorb(u, v, eject=True)
                     paths[v].remove(v)
-                
+
                 if low[u] <= low[v]:
                     logging.debug(f"LOW[U] <= LOW[V]: {[u]} + {paths[v]}")
                     absorb_path([u] + paths[v])
@@ -103,13 +107,14 @@ def traverse(root: int, g: Dict[int, List[int]]):
                     logging.debug(f"INCOMING BACK-EDGE: {u} -- {v} ({paths[u]})")
                     if v in paths[u]:
                         index = paths[u].index(v)
-                        absorb_path(paths[u][:index+1])
-                        paths[u] = [u] + paths[u][index+1:]
+                        absorb_path(paths[u][: index + 1])
+                        paths[u] = [u] + paths[u][index + 1 :]
                     else:
-                        logging.error(f"INCOMING BACK-EDGE PARTIAL ABSORB: Could not find {v} in paths[u]")
+                        logging.error(
+                            f"INCOMING BACK-EDGE PARTIAL ABSORB: Could not find {v} in paths[u]"
+                        )
                 else:
                     raise Exception("pre[u] == pre[v], bad.")
-    
 
     def absorb(u: int, v: int, eject: bool = False):
         """Absorb u into v."""
@@ -119,14 +124,22 @@ def traverse(root: int, g: Dict[int, List[int]]):
 
         graph[u].extend(graph[v])
 
-        for edge in embodiments:
-            if v in edge:
-                embodiments[edge] = Edge(edge.adj(v), u)
+        # for edge in embodiments:
+        #     if v in edge:
+        #         print(f"yes {edge} (adj: {edge.adj(v)}) --> {Edge(edge.adj(v), u)}")
+        #         embodiments[edge] = Edge(edge.adj(v), u)
 
         for x in graph[v]:
+            embodiments[Edge(v, x)] = Edge(u, x)
+            print(f"{Edge(v, x)} --> {Edge(u, x)}")
+
+            for uv, xy in embodiments.items():
+                if xy == Edge(v, x):
+                    embodiments[uv] = Edge(u, x)
+
             # Replace all mentions of v, with u!
             for _ in range(graph[x].count(v)):
-                # embodiments[Edge(x,v)] = 
+                # embodiments[Edge(x,v)] =
                 graph[x].remove(v)
                 graph[x].append(u)
 
@@ -144,10 +157,11 @@ def traverse(root: int, g: Dict[int, List[int]]):
         else:
             # Degree should be 2 if we are ejecting
             assert len(graph[v]) == 2
-            # Nothing should be pointed to v at this point, 
+            # Nothing should be pointed to v at this point,
             # likewise, v should not be connected to anything either
             graph[v].clear()
 
+        # print(embodiments)
         print(components)
 
     def absorb_path(p: List[int]):
@@ -160,7 +174,7 @@ def traverse(root: int, g: Dict[int, List[int]]):
         # Must contain one edge
         if not p or len(p) < 2:
             return
-        
+
         origin = p[0]
         for v in p[1:]:
             # Absorb edge u -- v

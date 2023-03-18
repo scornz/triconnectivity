@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 mininet = "*"
 mypy = "*"
+black = "*"
+numpy = "*"
 
 [dev-packages]
 
