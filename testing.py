@@ -5,6 +5,8 @@ from typing import Dict, List
 
 import logging
 
+from utils.exceptions import ComponentsInconsistentException
+
 
 def test_consistency(graph: Dict[int, List[int]]):
     """Test the consistency of the algorithm on the given input. For every possible
@@ -15,26 +17,35 @@ def test_consistency(graph: Dict[int, List[int]]):
     # Verify that the graph is undirected
     verify_graph(graph)
 
+    # Get the list of possible roots
     vertices = [k for k in graph]
+    # Initial set of components to compare against
     components = set(traverse(vertices[0], graph))
 
+    # Run the algorithm for every other set of vertices
     for i in range(1, len(vertices)):
         v = vertices[i]
         test_components = traverse(v, graph)
         count = 0
+
+        # Compare returned components against the intial set
         for c in test_components:
             if frozenset(c) not in components:
-                raise Exception()
+                raise ComponentsInconsistentException()
 
             count += 1
 
+        # Make sure the count of components is the exact same
         if count != len(components):
-            raise Exception()
+            raise ComponentsInconsistentException()
 
+    # Success! Print out the components that were returned
     logging.info(
         f"Graph was consistent for all root inputs. The components are: {components}"
     )
 
+
+# --- EXAMPLES --------------------------------------------------------------- #
 
 # Not tri-connected, at all, three different components
 simple = {1: [2, 3], 2: [1, 3], 3: [1, 2]}
@@ -75,6 +86,7 @@ paper_example = {
     16: [12, 15, 14, 13],
     17: [7, 11, 7],
 }
+# ---------------------------------------------------------------------------- #
 
 logging.basicConfig(level=logging.INFO)
 test_consistency(simple)

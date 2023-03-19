@@ -4,7 +4,8 @@ from typing import cast, List, Dict
 
 @dataclass(frozen=True)
 class Edge:
-    """An undirected edge, pointing from u --> v"""
+    """An immutable undirected edge, containing u and v. Can be a self-loop
+    (as in, u and v are the same vertex)."""
 
     u: int
     v: int
@@ -20,7 +21,7 @@ class Edge:
         return u == self.u or u == self.v
 
     def __hash__(self):
-        # hash(custom_object)
+        """Simply return the hash of a frozen set"""
         return hash(frozenset([self.u, self.v]))
 
     def adj(self, u: int) -> int:

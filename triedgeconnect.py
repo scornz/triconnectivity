@@ -12,6 +12,8 @@ def traverse(root: int, g: Dict[int, List[int]]) -> List[Component]:
     # Make a defensive copy of the original graph
     for u, connected in g.items():
         graph[u] = connected.copy()
+
+        # Initialize the embodiments of edges to be themselves
         for v in connected:
             embodiments[Edge(u, v)] = Edge(u, v)
 
@@ -23,29 +25,17 @@ def traverse(root: int, g: Dict[int, List[int]]) -> List[Component]:
     time = 1
     # Preordering of graph (order encountered in dfs)
     pre: DefaultDict[int, int] = defaultdict(int)  # Dict[vertex, preorder num]
-    parents: Dict[int, int] = dict()  # Dict[vertex, parent]
-    low: Dict[int, int] = dict()
-    paths: Dict[int, List[int]] = dict()
-    tree: Set[Edge] = set()
-
-    def degree(u: int) -> int:
-        connected = graph[u]
-        actual = set()
-        for v in connected:
-            actual.add(embodiments[Edge(u, v)].adj(u))
-
-        if u in actual:
-            actual.remove(u)
-        return len(actual)
+    low: Dict[
+        int, int
+    ] = dict()  # Dict[vertex, pre-order reachable via tree-edges and one back-edge]
+    paths: Dict[int, List[int]] = dict()  # The list of u-paths
 
     def dfs(u: int, p: int = -1):
-        logging.debug(f"VISITING: {u}")
         nonlocal time
+        logging.debug(f"VISITING: {u}")
         # Assign pre-order value
         pre[u] = time
         time += 1
-        # Assign parent
-        parents[u] = p
 
         # Initialize low values and w-path
         low[u] = pre[u]
@@ -53,16 +43,17 @@ def traverse(root: int, g: Dict[int, List[int]]) -> List[Component]:
 
         for v in graph[u].copy():
             v = embodiments[Edge(u, v)].adj(u)
+
+            # Skip self-loops
             if u == v:
                 continue
 
             if v not in graph[u]:
-                logging.error("The graph was constructed incorrectly.")
-
-            edge = Edge(u, v)
+                logging.error(
+                    f"v ({v}) was not found in graph[u] ({graph[u]}), the graph was constructed incorrectly."
+                )
 
             if v not in pre:
-                tree.add(edge)
                 # v is unvisited
                 dfs(v, u)
                 logging.debug(f"POST-VISITING: {v} (from {u})")
@@ -111,15 +102,10 @@ def traverse(root: int, g: Dict[int, List[int]]) -> List[Component]:
         logging.debug(f"ABSORB EDGE ADD: {graph[u]} + {graph[v]} (eject: {eject})")
 
         graph[u].extend(graph[v])
-
-        # for edge in embodiments:
-        #     if v in edge:
-        #         print(f"yes {edge} (adj: {edge.adj(v)}) --> {Edge(edge.adj(v), u)}")
-        #         embodiments[edge] = Edge(edge.adj(v), u)
-
         for x in graph[v]:
             embodiments[Edge(v, x)] = Edge(u, x)
 
+            # TODO: Replace with set-union
             for uv, xy in embodiments.items():
                 if xy == Edge(v, x):
                     embodiments[uv] = Edge(u, x)
@@ -130,14 +116,11 @@ def traverse(root: int, g: Dict[int, List[int]]) -> List[Component]:
                 graph[x].remove(v)
                 graph[x].append(u)
 
-        # Remove self-loops
+        # Remove immediate self-loops
         graph[u] = [x for x in graph[u] if x != u]
-        # graph[u].remove(v)
-        # print(f"trying to remove {v}")
-        # graph[u].remove(v)
 
         if not eject:
-            # print(graph.pop(v))
+            graph.pop(v)
             components[u].update(components[v])
             # Get rid of this item, since it has been absorbed by u
             components.pop(v)
@@ -147,8 +130,6 @@ def traverse(root: int, g: Dict[int, List[int]]) -> List[Component]:
             # Nothing should be pointed to v at this point,
             # likewise, v should not be connected to anything either
             graph[v].clear()
-
-        # print(embodiments)
 
     def absorb_path(p: List[int]):
         """Absorb a path of n vertices into p[0]. Take all edges incident to
@@ -168,6 +149,7 @@ def traverse(root: int, g: Dict[int, List[int]]) -> List[Component]:
 
     dfs(root, -1)
 
+    # Convert to components
     res: List[Component] = []
     for c in components.values():
         res.append(Component(c))
