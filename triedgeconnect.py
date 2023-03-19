@@ -3,19 +3,20 @@ from collections import defaultdict
 from utils import Component, Edge
 import logging
 
+from utils.disjoint import Disjoint
+
 
 def traverse(root: int, g: Dict[int, List[int]]) -> List[Component]:
     graph: Dict[int, List[int]] = dict()
-    # Embodiments of all edges
-    embodiments: Dict[Edge, Edge] = dict()
-
-    # Make a defensive copy of the original graph
+    # Make a defensive copy of the original graph]
+    # Initialize the embodiments of edges to be themselves
+    edges: Set[Edge] = set()
     for u, connected in g.items():
         graph[u] = connected.copy()
-
-        # Initialize the embodiments of edges to be themselves
         for v in connected:
-            embodiments[Edge(u, v)] = Edge(u, v)
+            edges.add(Edge(u, v))
+
+    embodiments: Disjoint[Edge] = Disjoint(list(edges))
 
     # Initialize each component to be 1 vertex (itself)
     components: Dict[int, Set[int]] = dict()
@@ -42,7 +43,8 @@ def traverse(root: int, g: Dict[int, List[int]]) -> List[Component]:
         paths[u] = [u]
 
         for v in graph[u].copy():
-            v = embodiments[Edge(u, v)].adj(u)
+            # Get the embodiment of the edge u -- v
+            v = embodiments.get(Edge(u, v)).adj(u)
 
             # Skip self-loops
             if u == v:
@@ -58,7 +60,6 @@ def traverse(root: int, g: Dict[int, List[int]]) -> List[Component]:
                 dfs(v, u)
                 logging.debug(f"POST-VISITING: {v} (from {u})")
                 # If the degree of v is two
-                # print(degree())
                 if len(graph[v]) == 2:
                     # Connect u to all of v's edges, and EJECT v
                     absorb(u, v, eject=True)
@@ -103,16 +104,11 @@ def traverse(root: int, g: Dict[int, List[int]]) -> List[Component]:
 
         graph[u].extend(graph[v])
         for x in graph[v]:
-            embodiments[Edge(v, x)] = Edge(u, x)
-
-            # TODO: Replace with set-union
-            for uv, xy in embodiments.items():
-                if xy == Edge(v, x):
-                    embodiments[uv] = Edge(u, x)
+            # Let u -- x embody v -- x
+            embodiments.union(Edge(u, x), Edge(v, x))
 
             # Replace all mentions of v, with u!
             for _ in range(graph[x].count(v)):
-                # embodiments[Edge(x,v)] =
                 graph[x].remove(v)
                 graph[x].append(u)
 
