@@ -6,7 +6,12 @@ import logging
 from utils.disjoint import Disjoint
 
 
-def traverse(root: int, g: Dict[int, List[int]]) -> List[Component]:
+def get_three_edge_connected_components(
+    root: int, g: Dict[int, List[int]]
+) -> List[Component]:
+    """Returns a list of 3-edge-connected components from the graph listed in
+    G."""
+
     graph: Dict[int, List[int]] = dict()
     # Make a defensive copy of the original graph]
     # Initialize the embodiments of edges to be themselves
@@ -97,7 +102,7 @@ def traverse(root: int, g: Dict[int, List[int]]) -> List[Component]:
                     raise Exception("pre[u] == pre[v], bad.")
 
     def absorb(u: int, v: int, eject: bool = False):
-        """Absorb u into v."""
+        """Absorb v into u."""
         assert u != v
         logging.debug(f"ABSORB EDGE: {u} -- {v} (eject: {eject})")
         logging.debug(f"ABSORB EDGE ADD: {graph[u]} + {graph[v]} (eject: {eject})")

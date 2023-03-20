@@ -1,4 +1,4 @@
-from triedgeconnect import traverse
+from triconnect.edge import get_three_edge_connected_components
 from utils import verify_graph
 
 from typing import Dict, List
@@ -20,12 +20,12 @@ def test_consistency(graph: Dict[int, List[int]]):
     # Get the list of possible roots
     vertices = [k for k in graph]
     # Initial set of components to compare against
-    components = set(traverse(vertices[0], graph))
+    components = set(get_three_edge_connected_components(vertices[0], graph))
 
     # Run the algorithm for every other set of vertices
     for i in range(1, len(vertices)):
         v = vertices[i]
-        test_components = traverse(v, graph)
+        test_components = get_three_edge_connected_components(v, graph)
         count = 0
 
         # Compare returned components against the intial set
