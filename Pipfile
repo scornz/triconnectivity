@@ -8,6 +8,7 @@ mininet = "*"
 mypy = "*"
 black = "*"
 numpy = "*"
+bidict = "*"
 
 [dev-packages]
 
