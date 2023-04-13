@@ -4,6 +4,7 @@ from utils import Component, Edge
 import logging
 from bidict import bidict
 
+
 def traverse(graph: Dict[int, List[int]]):
     time = 0
     # Preordering of graph (order encountered in dfs)
@@ -97,7 +98,7 @@ def traverse(graph: Dict[int, List[int]]):
         if len(u_out) + len(u_in) > 1:
             reduce_vertex(u)
 
-    def reduce_vertex(u: int, in):
+    def reduce_vertex(u: int):
         pass
 
     pass

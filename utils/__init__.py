@@ -9,7 +9,11 @@ class Edge:
 
     u: int
     v: int
-    uid: int = 0
+
+    # An identifier for the edge itself, used for seperating parallel edges
+    uid: int = -1
+    # Is this edge a tree edge
+    tree: bool = False
 
     def __eq__(self, __o: object):
         assert type(__o) is Edge
@@ -35,6 +39,9 @@ class Edge:
 
     def __str__(self):
         return f"{self.u} -- {self.v}"
+
+    def mark(self):
+        object.__setattr__(self, "tree", True)
 
 
 class Component(frozenset):
