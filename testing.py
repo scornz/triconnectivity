@@ -1,4 +1,4 @@
-from triconnect.edge import get_three_edge_connected_components
+from triconnect.edge_new_iterative import get_three_edge_connected_components
 from utils import verify_graph
 
 from typing import Dict, List
@@ -6,6 +6,7 @@ from typing import Dict, List
 import logging
 
 from utils.exceptions import ComponentsInconsistentException
+from utils.snap import load_snap_dataset
 
 
 def test_consistency(graph: Dict[int, List[int]]):
@@ -151,14 +152,29 @@ geant2 = {
     23: [19, 22],
 }
 
+broken = {0: [2, 4], 1: [2, 3, 4], 2: [0, 1, 3], 3: [1, 2, 4], 4: [0, 1, 3]}
+
+counts = 0
+for l in geant2.values():
+    counts += len(l)
+
+print(counts)
+
 # ---------------------------------------------------------------------------- #
 
+import sys
+
+# sys.setrecursionlimit(2000)
 logging.basicConfig(level=logging.INFO)
-test_consistency(simple)
-test_consistency(simple2)
-test_consistency(simple3)
-test_consistency(graph)
-test_consistency(paper_example)
-test_consistency(nsfnet)
-test_consistency(geant2)
-test_consistency(gbn)
+snap = load_snap_dataset("data/roadNet-CA.txt")
+print("Loaded!")
+#
+print("Done!")
+print(len(get_three_edge_connected_components(1, snap)))
+# test_consistency(simple2)
+# test_consistency(simple3)
+# test_consistency(graph)
+# test_consistency(paper_example)
+# test_consistency(nsfnet)
+# test_consistency(geant2)
+# test_consistency(gbn)

@@ -12,14 +12,27 @@ def get_three_edge_connected_components(
     """Returns a list of 3-edge-connected components from the graph listed in
     G."""
 
-    graph: Dict[int, List[int]] = dict()
+    ugraph: Dict[int, List[int]] = dict()
+    ograph: Dict[int, List[int]] = dict()
     # Make a defensive copy of the original graph]
     # Initialize the embodiments of edges to be themselves
     edges: Set[Edge] = set()
+    tree_edges: Set[int] = set()
+    count = 0
     for u, connected in g.items():
-        graph[u] = connected.copy()
+        ugraph[u] = connected.copy()
+        ograph[u] = connected.copy()
         for v in connected:
             edges.add(Edge(u, v))
+
+    graph: Dict[int, List[Edge]] = defaultdict(list)
+    for u, adj in ugraph.items():
+        for v in adj:
+            edge = Edge(u, v, count)
+            graph[u].append(edge)
+            graph[v].append(edge)
+            ugraph[v].remove(u)
+            count += 1
 
     embodiments: Disjoint[Edge] = Disjoint(list(edges))
 
@@ -47,7 +60,8 @@ def get_three_edge_connected_components(
         low[u] = pre[u]
         paths[u] = [u]
 
-        for v in graph[u].copy():
+        for edge in graph[u]:
+            v = edge.adj(u)
             # Get the embodiment of the edge u -- v
             v = embodiments.get(Edge(u, v)).adj(u)
 
@@ -55,17 +69,18 @@ def get_three_edge_connected_components(
             if u == v:
                 continue
 
-            if v not in graph[u]:
+            if v not in ograph[u]:
                 logging.error(
-                    f"v ({v}) was not found in graph[u] ({graph[u]}), the graph was constructed incorrectly."
+                    f"v ({v}) was not found in graph[u] ({ograph[u]}), the graph was constructed incorrectly."
                 )
 
             if v not in pre:
+                tree_edges.add(edge.uid)
                 # v is unvisited
                 dfs(v, u)
                 logging.debug(f"POST-VISITING: {v} (from {u})")
                 # If the degree of v is two
-                if len(graph[v]) == 2:
+                if len(ograph[v]) == 2:
                     # Connect u to all of v's edges, and EJECT v
                     absorb(u, v, eject=True)
                     paths[v].remove(v)
@@ -78,7 +93,7 @@ def get_three_edge_connected_components(
                     low[u] = low[v]
                     absorb_path(paths[u])
                     paths[u] = [u] + paths[v]
-            else:
+            elif edge.uid not in tree_edges:
                 if pre[u] > pre[v]:
                     # Outgoing back-edge of u
                     logging.debug(f"OUTGOING BACK-EDGE: {u} -- {v}")
@@ -105,32 +120,32 @@ def get_three_edge_connected_components(
         """Absorb v into u."""
         assert u != v
         logging.debug(f"ABSORB EDGE: {u} -- {v} (eject: {eject})")
-        logging.debug(f"ABSORB EDGE ADD: {graph[u]} + {graph[v]} (eject: {eject})")
+        logging.debug(f"ABSORB EDGE ADD: {ograph[u]} + {ograph[v]} (eject: {eject})")
 
-        graph[u].extend(graph[v])
-        for x in graph[v]:
+        ograph[u].extend(ograph[v])
+        for x in ograph[v]:
             # Let u -- x embody v -- x
             embodiments.union(Edge(u, x), Edge(v, x))
 
             # Replace all mentions of v, with u!
-            for _ in range(graph[x].count(v)):
-                graph[x].remove(v)
-                graph[x].append(u)
+            for _ in range(ograph[x].count(v)):
+                ograph[x].remove(v)
+                ograph[x].append(u)
 
         # Remove immediate self-loops
-        graph[u] = [x for x in graph[u] if x != u]
+        ograph[u] = [x for x in ograph[u] if x != u]
 
         if not eject:
-            graph.pop(v)
+            ograph.pop(v)
             components[u].update(components[v])
             # Get rid of this item, since it has been absorbed by u
             components.pop(v)
         else:
             # Degree should be 2 if we are ejecting
-            assert len(graph[v]) == 2
+            assert len(ograph[v]) == 2
             # Nothing should be pointed to v at this point,
             # likewise, v should not be connected to anything either
-            graph[v].clear()
+            ograph[v].clear()
 
     def absorb_path(p: List[int]):
         """Absorb a path of n vertices into p[0]. Take all edges incident to
