@@ -90,10 +90,9 @@ class ThreeEdgeConnectBase:
         assert u != v
 
         self.graph[u].extend(self.graph[v])
-        for x in self.graph[v]:
+        for x in set(self.graph[v]):
             # Let u -- x embody v -- x
             self.embodiments.union(Edge(u, x), Edge(v, x))
-
             # Replace all mentions of v, with u!
             for _ in range(self.graph[x].count(v)):
                 self.graph[x].remove(v)

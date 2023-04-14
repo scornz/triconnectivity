@@ -11,10 +11,17 @@ import pickle
 def load_pickle(data_path: str) -> List[Component]:
     """Load a saved pickle dataset into a list of components"""
 
-    with open(f"{data_path}.pkl", "rb") as inp:
+    with open(f"{data_path}-components.pkl", "rb") as inp:
         return pickle.load(inp)
 
 
 def print_stats(components: List[Component]):
     """Given a list of components, print out some statistics about them."""
-    print(f"Number of components: {len(components)}")
+    num = len(components)
+    print(f"Number of components: {num}")
+    largest_component_size = len(max(components, key=lambda x: len(x)))
+    print(f"Largest component size: {largest_component_size}")
+    print(f"Average component size: {sum(len(c) for c in components) / num}")
+    print(
+        f"Average component size (w/o largest component): {sum(len(c) for c in components if len(c) != largest_component_size) / (num - 1)}"
+    )

@@ -80,7 +80,7 @@ def run_and_save(data_path: str, directed: bool = False):
     )
 
     # Open file to save results to
-    with open(f"{data_path}.pkl", "wb") as outp:
+    with open(f"{data_path}-components.pkl", "wb") as outp:
         # Dump to file
         pickle.dump(components, outp, pickle.HIGHEST_PROTOCOL)
 

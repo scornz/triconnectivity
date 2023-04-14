@@ -1,5 +1,6 @@
 import logging
 from utils.snap import run_and_save
+from utils.analysis import load_pickle, print_stats
 
 # --- EXAMPLES --------------------------------------------------------------- #
 
@@ -110,4 +111,5 @@ geant2 = {
 # ---------------------------------------------------------------------------- #
 
 logging.basicConfig(level=logging.INFO)
-run_and_save("data/p2p-Gnutella31.txt", directed=True)
+run_and_save("data/oregon1_010526.txt", directed=True)
+# print_stats(load_pickle("data/p2p-Gnutella31.txt"))
