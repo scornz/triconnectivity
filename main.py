@@ -1,53 +1,5 @@
-from triconnect.edge.recursive import ThreeEdgeConnectRecursive
-from triconnect.edge.iterative import ThreeEdgeConnectIterative
-
-# from triconnect.iterative_edge import get_three_edge_connected_components
-from utils import verify_graph
-
-from typing import Dict, List
-
 import logging
-
-from utils.exceptions import ComponentsInconsistentException
-from utils.snap import load_snap_dataset
-
-
-def test_consistency(graph: Dict[int, List[int]]):
-    """Test the consistency of the algorithm on the given input. For every possible
-    root, compare the returned components against one another. NOTE: This does
-    not necessarily test for correctness, but consistent responses no matter the
-    initialization of the function."""
-
-    # Verify that the graph is undirected
-    verify_graph(graph)
-
-    # Get the list of possible roots
-    vertices = [k for k in graph]
-    # Initial set of components to compare against
-    components = set(ThreeEdgeConnectIterative(vertices[0], graph).get())
-
-    # Run the algorithm for every other set of vertices
-    for i in range(1, len(vertices)):
-        v = vertices[i]
-        test_components = ThreeEdgeConnectIterative(v, graph).get()
-        count = 0
-
-        # Compare returned components against the intial set
-        for c in test_components:
-            if frozenset(c) not in components:
-                raise ComponentsInconsistentException()
-
-            count += 1
-
-        # Make sure the count of components is the exact same
-        if count != len(components):
-            raise ComponentsInconsistentException()
-
-    # Success! Print out the components that were returned
-    logging.info(
-        f"Graph was consistent for all root inputs. The components are: {components}"
-    )
-
+from utils.snap import run_and_save
 
 # --- EXAMPLES --------------------------------------------------------------- #
 
@@ -155,29 +107,7 @@ geant2 = {
     23: [19, 22],
 }
 
-broken = {0: [2, 4], 1: [2, 3, 4], 2: [0, 1, 3], 3: [1, 2, 4], 4: [0, 1, 3]}
-
-counts = 0
-for l in geant2.values():
-    counts += len(l)
-
-print(counts)
-
 # ---------------------------------------------------------------------------- #
 
-import sys
-
-# sys.setrecursionlimit(2000)
 logging.basicConfig(level=logging.INFO)
-# snap = load_snap_dataset("data/roadNet-CA.txt")
-print("Loaded!")
-#
-print("Done!")
-# print(len(get_three_edge_connected_components(1, snap)))
-test_consistency(simple2)
-test_consistency(simple3)
-test_consistency(graph)
-test_consistency(paper_example)
-test_consistency(nsfnet)
-test_consistency(geant2)
-test_consistency(gbn)
+run_and_save("data/p2p-Gnutella31.txt", directed=True)

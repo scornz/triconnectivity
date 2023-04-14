@@ -1,7 +1,7 @@
 from .base import ThreeEdgeConnectBase
 from typing import List, Set, DefaultDict, Dict, Tuple
 from collections import defaultdict
-from utils import Component, Edge
+from utils import Edge, print_progress_bar
 import logging
 
 from utils.disjoint import Disjoint
@@ -11,6 +11,13 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
     def _explore(self, u: int):
         stack = [u]
         explored_back = set()
+
+        processed = 0
+        length = len(self.graph)
+        # Print out a progress bar with how many vertices have been post-visited
+        print_progress_bar(
+            processed, length, prefix="Progress:", suffix="Complete", length=50
+        )
 
         prev = 0
         while stack:
@@ -63,10 +70,10 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
                 if v not in self.pre:
                     # v is unvisited
                     stack.append(v)
-                    self.tree_edges.add(edge.uid)
+                    edge.mark()
                     one = True
                     break
-                elif edge.uid not in self.tree_edges:
+                elif not edge.tree:
                     if (edge.uid, u) in explored_back:
                         logging.debug(f"SKIPPING BACK-EDGE: {u} -- {v}")
                         continue
@@ -87,7 +94,7 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
                         )
                         if v in self.paths[u]:
                             index = self.paths[u].index(v)
-                            self.absorb_path(self.paths[u][: index + 1])
+                            self._absorb_path(self.paths[u][: index + 1])
                             self.paths[u] = [u] + self.paths[u][index + 1 :]
                         else:
                             logging.error(
@@ -98,4 +105,9 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
 
             if not one:
                 stack.pop()
+                processed += 1
+                print_progress_bar(
+                    processed, length, prefix="Progress:", suffix="Complete", length=50
+                )
+
                 prev = u

@@ -52,49 +52,32 @@ class Component(frozenset):
         return self.__repr__()
 
 
-def verify_graph(graph: Dict[int, List[int]]):
-    """Takes in an undirected graph, and makes sure every edge has its opposite
-    in the graph."""
-
-    for u, adj in graph.items():
-        for v in adj:
-            if u not in graph[v]:
-                raise Exception(
-                    f"{u} is adjacent to {v}, but {v} is not adjacent to {u}."
-                )
-
-
-import sys
-
-
-class TailRecurseException(Exception):
-    def __init__(self, args, kwargs):
-        self.args = args
-        self.kwargs = kwargs
-
-
-def tail_call_optimized(g):
+def print_progress_bar(
+    iteration,
+    total,
+    prefix="",
+    suffix="",
+    decimals=1,
+    length=100,
+    fill="█",
+    printEnd="\r",
+):
     """
-    This function decorates a function with tail call
-    optimization. It does this by throwing an exception
-    if it is it's own grandparent, and catching such
-    exceptions to fake the tail call optimization.
-
-    This function fails if the decorated
-    function recurses in a non-tail context.
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
     """
-
-    def func(*args, **kwargs):
-        f = sys._getframe()
-        if f.f_back and f.f_back.f_back and f.f_back.f_back.f_code == f.f_code:
-            raise TailRecurseException(args, kwargs)
-        else:
-            while 1:
-                try:
-                    return g(*args, **kwargs)
-                except TailRecurseException as e:
-                    args = e.args
-                    kwargs = e.kwargs
-
-    func.__doc__ = g.__doc__
-    return func
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + "-" * (length - filledLength)
+    print(f"\r{prefix} |{bar}| {percent}% {suffix}", end=printEnd)
+    # Print New Line on Complete
+    if iteration == total:
+        print()
