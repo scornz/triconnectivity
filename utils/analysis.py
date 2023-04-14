@@ -11,7 +11,7 @@ import pickle
 def load_pickle(data_path: str) -> List[Component]:
     """Load a saved pickle dataset into a list of components"""
 
-    with open(f"{data_path}-components.pkl", "rb") as inp:
+    with open(f"data/processed/{data_path}-components.pkl", "rb") as inp:
         return pickle.load(inp)
 
 

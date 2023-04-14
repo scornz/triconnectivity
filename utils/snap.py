@@ -21,10 +21,9 @@ def load_snap_dataset(file: str, directed=False, vertex_limit=None):
     this."""
 
     graph: DefaultDict[int, List[int]] = defaultdict(list)
-    print(file)
 
     # Open file and load into undirected graph
-    with open(file, "r") as f:
+    with open(f"data/{file}", "r") as f:
         for line in f.readlines():
             # Ignore lines that are commented out
             if line[0] == "#":
@@ -80,7 +79,7 @@ def run_and_save(data_path: str, directed: bool = False):
     )
 
     # Open file to save results to
-    with open(f"{data_path}-components.pkl", "wb") as outp:
+    with open(f"data/processed/{data_path}-components.pkl", "wb") as outp:
         # Dump to file
         pickle.dump(components, outp, pickle.HIGHEST_PROTOCOL)
 

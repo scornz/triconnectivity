@@ -111,5 +111,5 @@ geant2 = {
 # ---------------------------------------------------------------------------- #
 
 logging.basicConfig(level=logging.INFO)
-run_and_save("data/oregon1_010526.txt", directed=True)
+run_and_save("roadNet-PA.txt")
 # print_stats(load_pickle("data/p2p-Gnutella31.txt"))
