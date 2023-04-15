@@ -25,3 +25,8 @@ def print_stats(components: List[Component]):
     print(
         f"Average component size (w/o largest component): {sum(len(c) for c in components if len(c) != largest_component_size) / (num - 1)}"
     )
+
+    components_excluding_small = [c for c in components if len(c) > 1]
+    print(
+        f"Number of components (greater than size 1): {len(components_excluding_small)}"
+    )
