@@ -111,5 +111,5 @@ geant2 = {
 # ---------------------------------------------------------------------------- #
 
 logging.basicConfig(level=logging.INFO)
-run_and_save("as-skitter.txt", directed=True)
+run_and_save("oregon1_010526.txt", directed=True)
 # print_stats(load_pickle("roadNet-PA.txt"))
