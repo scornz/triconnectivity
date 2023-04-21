@@ -40,8 +40,58 @@ class Edge:
     def __str__(self):
         return f"{self.u} -- {self.v}"
 
+
+class MutableEdge:
+    """A mutable directed edge."""
+
+    u: int
+    v: int
+
+    # An identifier for the edge itself, used for seperating parallel edges
+    uid: int = -1
+    # Is this edge a tree edge
+    tree: bool = False
+
+    def __init__(self, u: int, v: int, uid: int):
+        self.u = u
+        self.v = v
+        self.uid = uid
+
+    def __eq__(self, __o: object):
+        assert type(__o) is Edge
+        obj = cast(Edge, __o)
+        return (self.u == obj.u and self.v == obj.v) or (
+            self.u == obj.v and self.v == obj.u
+        )
+
+    def __contains__(self, u: int) -> bool:
+        return u == self.u or u == self.v
+
+    def adj(self, u: int) -> int:
+        if u == self.u:
+            return self.v
+        elif u == self.v:
+            return self.u
+        else:
+            raise Exception(f"{u} not found in {self}.")
+
+    def __str__(self):
+        return f"{self.u} -- {self.v}"
+
     def mark(self):
-        object.__setattr__(self, "tree", True)
+        self.tree = True
+
+    def redirect(self, x: int, y: int):
+        """Take the x end of this edge and redirect it to y."""
+        if x == self.u:
+            self.u = y
+        elif x == self.v:
+            self.v = y
+        else:
+            raise Exception(f"{x} not found in {self}.")
+
+    def freeze(self):
+        return Edge(self.u, self.v, self.uid, self.tree)
 
 
 class Component(frozenset):

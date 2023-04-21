@@ -1,6 +1,11 @@
 import logging
+from triconnect.edge.iterative import ThreeEdgeConnectIterative
+from triconnect.edge.recursive import ThreeEdgeConnectRecursive
 from utils.snap import run_and_save
 from utils.analysis import load_pickle, print_stats
+
+from utils.testing import test_consistency
+
 
 # --- EXAMPLES --------------------------------------------------------------- #
 
@@ -108,8 +113,24 @@ geant2 = {
     23: [19, 22],
 }
 
+
+def test_examples():
+    """Run test_consistency on all examples"""
+    test_consistency(simple)
+    test_consistency(simple2)
+    test_consistency(simple3)
+    test_consistency(graph)
+    test_consistency(paper_example)
+    test_consistency(nsfnet)
+    test_consistency(gbn)
+    test_consistency(geant2)
+
+
 # ---------------------------------------------------------------------------- #
 
 logging.basicConfig(level=logging.INFO)
 run_and_save("as-skitter.txt", directed=True)
 # print_stats(load_pickle("roadNet-PA.txt"))
+
+# test_examples()
+# print(ThreeEdgeConnectIterative(5, simple3).get())

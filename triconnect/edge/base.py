@@ -1,6 +1,6 @@
 from typing import List, Set, FrozenSet, DefaultDict, Dict
 from collections import defaultdict
-from utils import Component, Edge
+from utils import Component, Edge, MutableEdge
 import logging
 
 from utils.disjoint import Disjoint
@@ -11,7 +11,7 @@ class ThreeEdgeConnectBase:
     graph: Dict[int, List[int]]
     # Make an edge graph, where the key is a vertex, and the value is a set of
     # edges that are objects and have unique identifiers
-    edge_graph: Dict[int, List[Edge]]
+    edge_graph: Dict[int, List[MutableEdge]]
     # A disjoint-set-union object where the key is an edge in edges, and the value
     # is the embodiment of that edge
     # An embodiment is simply the representation of an edge after some merges
@@ -38,12 +38,14 @@ class ThreeEdgeConnectBase:
         # Make an edge graph, where the key is a vertex, and the value is a set of
         # edges that are objects and have unique identifiers
         self.edge_graph = defaultdict(list)
-        for i, (u, adj) in enumerate(temp.items()):
+        i = 0
+        for u, adj in temp.items():
             for v in adj:
-                edge = Edge(u, v, i)
+                edge = MutableEdge(u, v, i)
                 self.edge_graph[u].append(edge)
                 self.edge_graph[v].append(edge)
                 temp[v].remove(u)
+                i += 1
 
         # A disjoint-set-union object where the key is an edge in edges, and the value
         # is the embodiment of that edge
@@ -87,31 +89,7 @@ class ThreeEdgeConnectBase:
 
     def _absorb(self, u: int, v: int, eject: bool = False):
         """Absorb v into u."""
-        assert u != v
-
-        self.graph[u].extend(self.graph[v])
-        for x in set(self.graph[v]):
-            # Let u -- x embody v -- x
-            self.embodiments.union(Edge(u, x), Edge(v, x))
-            # Replace all mentions of v, with u!
-            for _ in range(self.graph[x].count(v)):
-                self.graph[x].remove(v)
-                self.graph[x].append(u)
-
-        # Remove immediate self-loops
-        self.graph[u] = [x for x in self.graph[u] if x != u]
-
-        if not eject:
-            self.graph.pop(v)
-            self.components[u].update(self.components[v])
-            # Get rid of this item, since it has been absorbed by u
-            self.components.pop(v)
-        else:
-            # Degree should be 2 if we are ejecting
-            assert len(self.graph[v]) == 2
-            # Nothing should be pointed to v at this point,
-            # likewise, v should not be connected to anything either
-            self.graph[v].clear()
+        raise NotImplementedError()
 
     def _absorb_path(self, p: List[int]):
         """Absorb a path of n vertices into p[0]. Take all edges incident to

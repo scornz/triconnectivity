@@ -33,7 +33,7 @@ def test_consistency(graph: Dict[int, List[int]]):
     for i in range(1, len(vertices)):
         v = vertices[i]
         iterative_test_components = ThreeEdgeConnectIterative(v, graph).get()
-        recursive_test_components = ThreeEdgeConnectIterative(v, graph).get()
+        recursive_test_components = ThreeEdgeConnectRecursive(v, graph).get()
 
         # Compare returned components against the intial set
         for c in iterative_test_components:

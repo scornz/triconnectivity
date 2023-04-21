@@ -72,7 +72,7 @@ def run_and_save(data_path: str, directed: bool = False):
         f"Conducting iterative triconnectivity algorithm on {data_path} with {len(snap)} vertices."
     )
     start_time = datetime.utcnow()
-    components = ThreeEdgeConnectIterative(root, snap).get()
+    components = ThreeEdgeConnectIterative(root, snap, True).get()
     end_time = datetime.utcnow()
     logging.info(
         f"Finished in {end_time - start_time}. Saving results to {data_path}.pkl."

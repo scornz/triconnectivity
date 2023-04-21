@@ -3,11 +3,49 @@ from typing import List, Set, DefaultDict, Dict, Tuple
 from collections import defaultdict
 from utils import Edge, print_progress_bar
 import logging
+from datetime import datetime
 
 from utils.disjoint import Disjoint
 
 
 class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
+    def __init__(self, root: int, g: Dict[int, List[int]], progress_bar=False):
+        # Whether or not to show progress bar
+        self.progress_bar = progress_bar
+        # Init main graph
+        super().__init__(root, g)
+
+    def _absorb(self, u: int, v: int, eject: bool = False):
+        """Absorb v into u."""
+        assert u != v
+        existing = set([edge.uid for edge in self.edge_graph[u]])
+
+        # self.graph[u].extend(self.graph[v])
+        self.edge_graph[u].extend(
+            [edge for edge in self.edge_graph[v] if edge.uid not in existing]
+        )
+
+        for edge in self.edge_graph[v]:
+            # Redirect all of the edges
+            edge.redirect(v, u)
+
+        # Remove immediate self-loops
+        # self.graph[u] = [x for x in self.graph[u] if x != u]
+        self.edge_graph[u] = [edge for edge in self.edge_graph[u] if edge.u != edge.v]
+
+        if not eject:
+            self.edge_graph.pop(v)
+            self.components[u].update(self.components[v])
+            # Get rid of this item, since it has been absorbed by u
+            self.components.pop(v)
+        else:
+            # Degree should be 2 if we are ejecting
+            assert len(self.edge_graph[v]) == 2
+            # Nothing should be pointed to v at this point,
+            # likewise, v should not be connected to anything either
+            # self.graph[v].clear()
+            self.edge_graph[v].clear()
+
     def _explore(self, u: int):
         stack = [u]
         explored_back = set()
@@ -15,9 +53,10 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
         processed = 0
         length = len(self.graph)
         # Print out a progress bar with how many vertices have been post-visited
-        print_progress_bar(
-            processed, length, prefix="Progress:", suffix="Complete", length=50
-        )
+        if self.progress_bar:
+            print_progress_bar(
+                processed, length, prefix="Progress:", suffix="Complete", length=50
+            )
 
         prev = 0
         while stack:
@@ -34,11 +73,11 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
                 self.low[u] = self.pre[u]
                 self.paths[u] = [u]
             else:
-                v = self.embodiments.get(Edge(u, prev)).adj(u)
+                v = prev
                 # We are post visiting u from some node, v!
                 logging.debug(f"POST-VISITING: {v} (from {u})")
                 # If the degree of v is two
-                if len(self.graph[v]) == 2:
+                if len(self.edge_graph[v]) == 2:
                     # Connect u to all of v's edges, and EJECT v
                     self._absorb(u, v, eject=True)
                     self.paths[v].remove(v)
@@ -53,19 +92,21 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
                     self.paths[u] = [u] + self.paths[v]
 
             one = False
+            # time1 = datetime.utcnow()
+            # explored = set()
             for edge in self.edge_graph[u]:
                 # Get the embodiment of the edge u -- v
                 v = edge.adj(u)
                 # Skip self-loops
-                v = self.embodiments.get(Edge(u, v)).adj(u)
+                # v = self.embodiments.get(Edge(u, v)).adj(u)
 
                 if u == v:
                     continue
 
-                if v not in self.graph[u]:
-                    logging.error(
-                        f"v ({v}) was not found in graph[u] ({self.graph[u]}), the graph was constructed incorrectly."
-                    )
+                # if v not in self.graph[u]:
+                #     logging.error(
+                #         f"v ({v}) was not found in graph[{u}] ({self.graph[u]}), the graph was constructed incorrectly."
+                #     )
 
                 if v not in self.pre:
                     # v is unvisited
@@ -74,9 +115,9 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
                     one = True
                     break
                 elif not edge.tree:
-                    if (edge.uid, u) in explored_back:
-                        logging.debug(f"SKIPPING BACK-EDGE: {u} -- {v}")
-                        continue
+                    # if (edge.uid, u) in explored_back:
+                    #     logging.error(f"SKIPPING BACK-EDGE: {u} -- {v}")
+                    #     # continue
 
                     explored_back.add((edge.uid, u))
                     if self.pre[u] > self.pre[v]:
@@ -103,11 +144,19 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
                     else:
                         raise Exception("pre[u] == pre[v], bad.")
 
+            # time2 = datetime.utcnow()
+            # print(f"{time2 - time1} + {len(explored)} + {len(self.edge_graph[u])}")
+
             if not one:
                 stack.pop()
                 processed += 1
-                print_progress_bar(
-                    processed, length, prefix="Progress:", suffix="Complete", length=50
-                )
+                if self.progress_bar:
+                    print_progress_bar(
+                        processed,
+                        length,
+                        prefix="Progress:",
+                        suffix="Complete",
+                        length=50,
+                    )
 
                 prev = u

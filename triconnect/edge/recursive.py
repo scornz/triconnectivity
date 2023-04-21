@@ -8,6 +8,34 @@ from utils.disjoint import Disjoint
 
 
 class ThreeEdgeConnectRecursive(ThreeEdgeConnectBase):
+    def _absorb(self, u: int, v: int, eject: bool = False):
+        """Absorb v into u."""
+        assert u != v
+
+        self.graph[u].extend(self.graph[v])
+        for x in set(self.graph[v]):
+            # Let u -- x embody v -- x
+            self.embodiments.union(Edge(u, x), Edge(v, x))
+            # Replace all mentions of v, with u!
+            for _ in range(self.graph[x].count(v)):
+                self.graph[x].remove(v)
+                self.graph[x].append(u)
+
+        # Remove immediate self-loops
+        self.graph[u] = [x for x in self.graph[u] if x != u]
+
+        if not eject:
+            self.graph.pop(v)
+            self.components[u].update(self.components[v])
+            # Get rid of this item, since it has been absorbed by u
+            self.components.pop(v)
+        else:
+            # Degree should be 2 if we are ejecting
+            assert len(self.graph[v]) == 2
+            # Nothing should be pointed to v at this point,
+            # likewise, v should not be connected to anything either
+            self.graph[v].clear()
+
     def _explore(self, u: int):
         logging.debug(f"VISITING: {u}")
         # Assign pre-order value
@@ -21,7 +49,7 @@ class ThreeEdgeConnectRecursive(ThreeEdgeConnectBase):
         for edge in self.edge_graph[u]:
             v = edge.adj(u)
             # Get the embodiment of the edge u -- v
-            v = self.embodiments.get(Edge(u, v)).adj(u)
+            v = self.embodiments.get(edge.freeze()).adj(u)
 
             # Skip self-loops
             if u == v:
