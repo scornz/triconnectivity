@@ -48,7 +48,6 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
 
     def _explore(self, u: int):
         stack = [u]
-        explored_back = set()
 
         processed = 0
         length = len(self.graph)
@@ -115,11 +114,6 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
                     one = True
                     break
                 elif not edge.tree:
-                    # if (edge.uid, u) in explored_back:
-                    #     logging.error(f"SKIPPING BACK-EDGE: {u} -- {v}")
-                    #     # continue
-
-                    explored_back.add((edge.uid, u))
                     if self.pre[u] > self.pre[v]:
                         # Outgoing back-edge of u
                         logging.debug(f"OUTGOING BACK-EDGE: {u} -- {v}")
