@@ -1,9 +1,4 @@
 import logging
-from triconnect.edge.iterative import ThreeEdgeConnectIterative
-from triconnect.edge.recursive import ThreeEdgeConnectRecursive
-from utils.snap import run_and_save
-from utils.analysis import load_pickle, print_stats
-
 from utils.testing import test_consistency
 
 

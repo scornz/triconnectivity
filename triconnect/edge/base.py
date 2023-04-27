@@ -1,7 +1,6 @@
-from typing import List, Set, FrozenSet, DefaultDict, Dict
+from typing import List, Set, DefaultDict, Dict
 from collections import defaultdict
 from utils import Component, Edge, MutableEdge
-import logging
 
 from utils.disjoint import Disjoint
 

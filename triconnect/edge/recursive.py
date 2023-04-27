@@ -1,13 +1,14 @@
-from typing import List, Set, FrozenSet, DefaultDict, Dict
-from collections import defaultdict
-from utils import Component, Edge
+from utils import Edge
 from .base import ThreeEdgeConnectBase
 import logging
 
-from utils.disjoint import Disjoint
-
 
 class ThreeEdgeConnectRecursive(ThreeEdgeConnectBase):
+    """A direct, recursive implementation based on Tsin's simple 3-edge-connectivity
+    algorithm. Includes significantly more debugging lines compared to its iterative
+    counterpart, as performance is not much of a concern in this implementation since
+    it's already so limited by the size of the recursive stack."""
+
     def _absorb(self, u: int, v: int, eject: bool = False):
         """Absorb v into u."""
         assert u != v
