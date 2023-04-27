@@ -15,7 +15,11 @@
   </a>
 </p>
 
-> A set of generic implementations for finding 3-edge-connected and 3-vertex-connected components in a graph (implemented in Python).
+> A set of generic implementations for finding $3$-edge-connected and $3$-vertex-connected components in a graph (implemented in Python). Made for junior-year independent work for Princeton University's COS Department.
+
+## Abstract
+
+This paper explores the implementation and application of a well known $3$-edge-connectivity algorithm. We use Tsin's algorithm to analyze, in linear time, the connectivity of essential networks [[1](#1)]. This includes state-wide road networks, distributed systems, and even the structure of the Internet. Implementations and applications of $3$-edge-connectivity are relatively unexplored, and this paper aims to fill a gap in the surrounding academic literature through rigorous explanation and demonstration.
 
 ## Requirements
 
@@ -33,3 +37,8 @@
 
 Copyright © 2023 [Mike Scornavacca](https://github.com/scornz).<br />
 This project is [MIT](https://github.com/scornz/triconnectivity/blob/main/LICENSE) licensed.
+
+## References
+
+[<a id="1">1</a>]
+Y. H. Tsin, “A Simple 3-Edge-Connected Component Algorithm,” Theory Comput Syst, vol. 40, no. 2, pp. 125–142, Feb. 2007, doi: 10.1007/s00224-005-1269-4.
