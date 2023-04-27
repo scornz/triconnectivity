@@ -11,6 +11,7 @@ bidict = "*"
 mininet = "*"
 
 [dev-packages]
+matplotlib = "*"
 
 [requires]
 python_version = "3.9"

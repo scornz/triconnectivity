@@ -19,14 +19,14 @@
 
 ## Requirements
 
-- Python 3.10 ([download](https://www.python.org/downloads/))
+- Python 3.9 ([download](https://www.python.org/downloads/)) or PyPy ([download](https://www.pypy.org/download.html))
 - `pipenv` (call `pip install pipenv` globally)
 
 ## Setup
 
 1.  Ensure requirements are installed correctly.
 2.  Navigate to project folder.
-3.  Call `pipenv install` to install requirement `pip` packages into the virtual environment.
+3.  Call `pipenv install` to install required `pip` packages into the virtual environment.
 4.  Prosper.
 
 ## 📝 License

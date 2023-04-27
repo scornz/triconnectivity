@@ -130,3 +130,4 @@ dmypy.json
 
 # Misc
 data/as-skitter.txt
+.DS_Store

@@ -128,9 +128,8 @@ def test_examples():
 
 # ---------------------------------------------------------------------------- #
 
+# Configure logging
 logging.basicConfig(level=logging.INFO)
-run_and_save("as-skitter.txt", directed=True)
-# print_stats(load_pickle("roadNet-PA.txt"))
 
-# test_examples()
-# print(ThreeEdgeConnectIterative(5, simple3).get())
+# Run consistency tests on small examples
+test_examples()

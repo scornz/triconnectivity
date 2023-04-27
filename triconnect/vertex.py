@@ -1,3 +1,7 @@
+"""NOTE: This script is wildly incomplete, but is left here for the possibility
+of future work. It is uncommented and does not work, please ignore it."""
+
+
 from typing import List, Set, FrozenSet, DefaultDict, Dict
 from collections import defaultdict
 from utils import Component, Edge
