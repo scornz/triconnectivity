@@ -1,11 +1,7 @@
 from .base import ThreeEdgeConnectBase
-from typing import List, Set, DefaultDict, Dict, Tuple
-from collections import defaultdict
-from utils import Edge, print_progress_bar
+from typing import List, Set, Dict
+from utils import MutableEdge, print_progress_bar
 import logging
-from datetime import datetime
-
-from utils.disjoint import Disjoint
 
 
 class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
@@ -18,21 +14,19 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
     def _absorb(self, u: int, v: int, eject: bool = False):
         """Absorb v into u."""
         assert u != v
-        existing = set([edge.uid for edge in self.edge_graph[u]])
+        self.edge_graph[u].update(self.edge_graph[v])
 
-        # self.graph[u].extend(self.graph[v])
-        self.edge_graph[u].extend(
-            [edge for edge in self.edge_graph[v] if edge.uid not in existing]
-        )
-
+        # time1 = datetime.utcnow()
+        remove: Set[MutableEdge] = set()
         for edge in self.edge_graph[v]:
             # Redirect all of the edges
             edge.redirect(v, u)
+            if edge.v == edge.u:
+                remove.add(edge)
 
         # Remove immediate self-loops
         # self.graph[u] = [x for x in self.graph[u] if x != u]
-        self.edge_graph[u] = [edge for edge in self.edge_graph[u] if edge.u != edge.v]
-
+        self.edge_graph[u].difference_update(remove)
         if not eject:
             self.edge_graph.pop(v)
             self.components[u].update(self.components[v])
@@ -60,8 +54,6 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
         prev = 0
         while stack:
             u = stack[-1]
-            logging.debug(f"VISITING: {u}")
-
             if u not in self.pre:
                 # This is the first time we are visiting this node
                 self.pre[u] = self.time
@@ -74,7 +66,6 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
             else:
                 v = prev
                 # We are post visiting u from some node, v!
-                logging.debug(f"POST-VISITING: {v} (from {u})")
                 # If the degree of v is two
                 if len(self.edge_graph[v]) == 2:
                     # Connect u to all of v's edges, and EJECT v
@@ -82,30 +73,20 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
                     self.paths[v].remove(v)
 
                 if self.low[u] <= self.low[v]:
-                    logging.debug(f"LOW[U] <= LOW[V]: {[u]} + {self.paths[v]}")
                     self._absorb_path([u] + self.paths[v])
                 else:
-                    logging.debug(f"LOW[U] > LOW[V]")
                     self.low[u] = self.low[v]
                     self._absorb_path(self.paths[u])
                     self.paths[u] = [u] + self.paths[v]
 
             one = False
-            # time1 = datetime.utcnow()
-            # explored = set()
-            for edge in self.edge_graph[u]:
-                # Get the embodiment of the edge u -- v
-                v = edge.adj(u)
+            for edge in self.edge_graph[u].copy():
                 # Skip self-loops
-                # v = self.embodiments.get(Edge(u, v)).adj(u)
-
-                if u == v:
+                if edge.u == edge.v:
                     continue
 
-                # if v not in self.graph[u]:
-                #     logging.error(
-                #         f"v ({v}) was not found in graph[{u}] ({self.graph[u]}), the graph was constructed incorrectly."
-                #     )
+                # Get the other end of the edge u --v
+                v = edge.adj(u)
 
                 if v not in self.pre:
                     # v is unvisited
@@ -116,17 +97,12 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
                 elif not edge.tree:
                     if self.pre[u] > self.pre[v]:
                         # Outgoing back-edge of u
-                        logging.debug(f"OUTGOING BACK-EDGE: {u} -- {v}")
                         if self.pre[v] < self.low[u]:
-                            logging.debug(f"OUTGOING BACK-EDGE ABSORB: {self.paths[u]}")
                             self._absorb_path(self.paths[u])
                             self.low[u] = self.pre[v]
                             self.paths[u] = [u]
                     elif self.pre[u] < self.pre[v]:
                         # Incoming back-edge of u
-                        logging.debug(
-                            f"INCOMING BACK-EDGE: {u} -- {v} ({self.paths[u]})"
-                        )
                         if v in self.paths[u]:
                             index = self.paths[u].index(v)
                             self._absorb_path(self.paths[u][: index + 1])
@@ -137,9 +113,6 @@ class ThreeEdgeConnectIterative(ThreeEdgeConnectBase):
                             )
                     else:
                         raise Exception("pre[u] == pre[v], bad.")
-
-            # time2 = datetime.utcnow()
-            # print(f"{time2 - time1} + {len(explored)} + {len(self.edge_graph[u])}")
 
             if not one:
                 stack.pop()

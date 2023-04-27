@@ -57,12 +57,12 @@ class MutableEdge:
         self.v = v
         self.uid = uid
 
-    def __eq__(self, __o: object):
-        assert type(__o) is Edge
-        obj = cast(Edge, __o)
-        return (self.u == obj.u and self.v == obj.v) or (
-            self.u == obj.v and self.v == obj.u
-        )
+    # def __eq__(self, __o: object):
+    #     assert type(__o) is Edge
+    #     obj = cast(Edge, __o)
+    #     return (self.u == obj.u and self.v == obj.v) or (
+    #         self.u == obj.v and self.v == obj.u
+    #     )
 
     def __contains__(self, u: int) -> bool:
         return u == self.u or u == self.v

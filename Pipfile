@@ -4,13 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-mininet = "*"
 mypy = "*"
 black = "*"
 numpy = "*"
 bidict = "*"
+mininet = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.10"
+python_version = "3.9"

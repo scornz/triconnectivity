@@ -11,7 +11,7 @@ class ThreeEdgeConnectBase:
     graph: Dict[int, List[int]]
     # Make an edge graph, where the key is a vertex, and the value is a set of
     # edges that are objects and have unique identifiers
-    edge_graph: Dict[int, List[MutableEdge]]
+    edge_graph: Dict[int, Set[MutableEdge]]
     # A disjoint-set-union object where the key is an edge in edges, and the value
     # is the embodiment of that edge
     # An embodiment is simply the representation of an edge after some merges
@@ -37,13 +37,13 @@ class ThreeEdgeConnectBase:
 
         # Make an edge graph, where the key is a vertex, and the value is a set of
         # edges that are objects and have unique identifiers
-        self.edge_graph = defaultdict(list)
+        self.edge_graph = defaultdict(set)
         i = 0
         for u, adj in temp.items():
             for v in adj:
                 edge = MutableEdge(u, v, i)
-                self.edge_graph[u].append(edge)
-                self.edge_graph[v].append(edge)
+                self.edge_graph[u].add(edge)
+                self.edge_graph[v].add(edge)
                 temp[v].remove(u)
                 i += 1
 
