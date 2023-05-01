@@ -6,8 +6,6 @@ from typing import List
 
 # External
 import pickle
-from collections import Counter
-import numpy as np
 
 
 def load_pickle(data_path: str) -> List[Component]:
@@ -39,25 +37,3 @@ def print_stats(components: List[Component]):
     print(
         f"Proportion (core): {largest_component_size / sum([len(c) for c in components_excluding_small])}"
     )
-
-    # fig, ax = plt.subplots()
-
-    # # plt.plot(x1, y1)
-
-    # all_component_sizes = [len(c) for c in components]
-    # counted_sizes = np.array(list(Counter(all_component_sizes).items()))
-
-    # # Sort such that component size is increasing
-    # counted_sizes = counted_sizes[counted_sizes[:, 0].argsort()]
-    # counted_sizes = counted_sizes[counted_sizes[:, 1] > 1, :]
-    # print(counted_sizes[:, 0])
-    # ax.set_yscale("log")
-    # ax.plot(counted_sizes[:, 0], counted_sizes[:, 1], color="orange")
-    # ax.set_ylabel("# of components")
-    # ax.set_xlabel("Component size (# of vertices)")
-    # fig.show()
-    # fig.show()
-    # plt.show()
-    # sorted_counted_sizes = sorted(counted_sizes.items())
-    # plt.bar(counted_sizes.keys(), counted_sizes.values())
-    # plt.show()
